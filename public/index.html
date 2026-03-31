@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dieci</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Lobby -->
+    <div id="lobby" class="schermata attiva">
+      <h1>Dieci</h1>
+      <p class="sottotitolo">Gioco di carte napoletane - Fai somma 10!</p>
+
+      <div class="form-gruppo">
+        <label for="nomeGiocatore">Il tuo nome:</label>
+        <input type="text" id="nomeGiocatore" placeholder="Inserisci il tuo nome" maxlength="20">
+      </div>
+
+      <div class="bottoni-lobby">
+        <div class="form-gruppo">
+          <label for="numGiocatori">Numero giocatori:</label>
+          <select id="numGiocatori">
+            <option value="2" selected>2 giocatori</option>
+            <option value="4">4 giocatori</option>
+          </select>
+        </div>
+        <button id="btnCreaStanza" class="btn-primario">Crea Stanza</button>
+        <div class="divisore">oppure</div>
+        <div class="form-gruppo">
+          <div class="input-stanza-container">
+            <input type="text" id="codiceStanza" placeholder="Codice stanza" maxlength="6" autocomplete="off">
+            <button type="button" id="btnMostraStanze" class="btn-stanze" title="Mostra stanze disponibili">&#9660;</button>
+          </div>
+          <div id="listaStanze" class="lista-stanze nascosto"></div>
+          <button id="btnUnisciti" class="btn-secondario">Unisciti</button>
+        </div>
+      </div>
+
+      <div id="messaggioLobby" class="messaggio"></div>
+
+      <div class="sezione-regole">
+        <h3>Regole</h3>
+        <div class="regole-contenuto">
+          <p><strong>Mazzo:</strong> 40 carte napoletane</p>
+          <p><strong>Distribuzione:</strong> 5 carte a testa, 4 a terra, ultima del mazzo girata (seme principale)</p>
+
+          <h4>Come si gioca</h4>
+          <ul>
+            <li>Ogni turno <strong>peschi</strong> una carta dal mazzo, poi ne <strong>giochi</strong> una</li>
+            <li>Se la tua carta + una carta a terra fanno <strong>somma 10</strong>, le prendi entrambe</li>
+            <li>Se giochi un <strong>10</strong>, va direttamente nelle tue prese</li>
+            <li>Se non puoi fare somma 10, la carta resta a terra</li>
+            <li>Se prendi l'unica carta a terra fai <strong>"Dieci!"</strong> (1 punto)</li>
+            <li>I 10 a terra a inizio partita vanno al mazziere</li>
+          </ul>
+
+          <h4>Punteggi</h4>
+          <ul>
+            <li><strong>Dieci:</strong> 1 punto per ogni volta che svuoti il tavolo</li>
+            <li><strong>Carte:</strong> 1 punto per chi prende piu di 20 carte</li>
+            <li><strong>Seme:</strong> 1 punto per chi ha piu carte del seme principale</li>
+            <li><strong>10 del seme:</strong> 1 punto per chi prende il 10 del seme principale</li>
+          </ul>
+
+          <p><strong>Vittoria:</strong> 10 punti</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Attesa -->
+    <div id="attesa" class="schermata">
+      <h2>Stanza creata!</h2>
+      <div class="codice-stanza">
+        <span>Codice:</span>
+        <strong id="codiceStanzaDisplay"></strong>
+      </div>
+      <p id="attesaInfo">In attesa degli altri giocatori...</p>
+      <div id="listaGiocatoriAttesa"></div>
+      <div class="loader"></div>
+    </div>
+
+    <!-- Gioco -->
+    <div id="gioco" class="schermata">
+      <div class="info-partita">
+        <div id="infoAvversari" class="info-avversari"></div>
+        <div class="info-centro">
+          <span id="turnoIndicatore">Turno avversario</span>
+          <span class="extra-info">Mazzo: <span id="mazzoRimanenti">0</span> | Obiettivo: <strong>10</strong> pt</span>
+        </div>
+        <div class="info-giocatore tu">
+          <span class="nome" id="nomeGiocatoreDisplay">Tu</span>
+          <span class="punti">Punti: <strong id="puntiGiocatore">0</strong></span>
+          <span class="carte-info">Prese: <span id="preseGiocatore">0</span></span>
+        </div>
+      </div>
+
+      <div id="areaAvversari"></div>
+
+      <div class="zona-centrale">
+        <div class="briscola-container">
+          <h4>Seme principale</h4>
+          <div id="briscolaDisplay" class="briscola-slot"></div>
+        </div>
+
+        <div class="tavolo-container">
+          <h3>Tavolo</h3>
+          <div id="tavolo" class="tavolo"></div>
+        </div>
+      </div>
+
+      <div class="area-giocatore">
+        <h3>La tua mano</h3>
+        <div id="manoGiocatore" class="mano-carte"></div>
+      </div>
+
+      <div id="messaggioGioco" class="messaggio"></div>
+    </div>
+
+    <!-- Fine Round -->
+    <div id="fineRound" class="schermata">
+      <h2 id="titoloFineRound">Fine Smazzata</h2>
+
+      <div id="briscolaRiepilogo" class="briscola-riepilogo"></div>
+
+      <div id="riepilogoPunti" class="riepilogo-punti"></div>
+
+      <button id="btnProssimoRound" class="btn-primario">Prossimo Round</button>
+      <button id="btnNuovaPartita" class="btn-primario nascosto">Nuova Partita</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>

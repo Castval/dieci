@@ -1,0 +1,296 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #0a1a2a 0%, #1a3a5a 50%, #0a1a2a 100%);
+  min-height: 100vh;
+  color: #fff;
+}
+
+#app { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.schermata { display: none; }
+.schermata.attiva { display: block; }
+
+/* Lobby */
+#lobby { text-align: center; padding-top: 50px; }
+
+#lobby h1 {
+  font-size: 3.5em;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  color: #ff6b35;
+}
+
+.sottotitolo { color: #7ab8d4; margin-bottom: 40px; }
+
+.form-gruppo { margin: 20px auto; max-width: 300px; }
+.form-gruppo label { display: block; margin-bottom: 8px; font-weight: bold; }
+
+.form-gruppo input, .form-gruppo select {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.form-gruppo select { background: #fff; color: #333; cursor: pointer; }
+#codiceStanza { text-transform: uppercase; }
+
+.input-stanza-container { display: flex; gap: 0; }
+.input-stanza-container input { border-radius: 8px 0 0 8px; flex: 1; }
+
+.btn-stanze {
+  background: rgba(255,255,255,0.3); border: none;
+  border-radius: 0 8px 8px 0; padding: 12px 15px;
+  color: #fff; cursor: pointer; font-size: 12px;
+}
+.btn-stanze:hover { background: rgba(255,255,255,0.4); }
+
+.lista-stanze {
+  background: #fff; border-radius: 8px; margin-top: 5px;
+  max-height: 200px; overflow-y: auto;
+}
+.lista-stanze.nascosto { display: none; }
+
+.stanza-item {
+  padding: 12px 15px; cursor: pointer; color: #0a1a2a;
+  border-bottom: 1px solid #eee; display: flex; justify-content: space-between;
+}
+.stanza-item:last-child { border-bottom: none; }
+.stanza-item:hover { background: #f0f0f0; }
+.stanza-item .codice { font-weight: bold; font-family: monospace; font-size: 1.1em; }
+.stanza-item .creatore { font-size: 0.9em; color: #666; }
+.lista-stanze .nessuna-stanza { padding: 15px; text-align: center; color: #666; }
+
+.bottoni-lobby { margin-top: 30px; }
+
+.btn-primario, .btn-secondario {
+  padding: 12px 30px; font-size: 16px; border: none;
+  border-radius: 8px; cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s; margin: 5px;
+}
+.btn-primario {
+  background: linear-gradient(135deg, #ff6b35 0%, #e05520 100%);
+  color: #fff; font-weight: bold;
+}
+.btn-primario:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+.btn-secondario { background: rgba(255,255,255,0.2); color: #fff; }
+.btn-secondario:hover { background: rgba(255,255,255,0.3); }
+
+.divisore {
+  margin: 25px 0; color: #7ab8d4; font-size: 1.1em;
+  display: flex; align-items: center; justify-content: center; gap: 15px;
+}
+.divisore::before, .divisore::after {
+  content: ''; flex: 1; max-width: 100px; height: 1px;
+  background: linear-gradient(to right, transparent, #7ab8d4, transparent);
+}
+
+.messaggio {
+  margin-top: 20px; padding: 10px 20px; border-radius: 8px; display: inline-block;
+}
+.messaggio.errore { background: rgba(220, 53, 69, 0.8); }
+.messaggio.successo { background: rgba(40, 167, 69, 0.8); }
+.messaggio.info { background: rgba(255, 107, 53, 0.3); color: #ff6b35; }
+
+#messaggioGioco {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); z-index: 1000;
+  font-size: 1.3em; padding: 15px 30px; pointer-events: none;
+}
+
+/* Regole */
+.sezione-regole {
+  margin-top: 40px; padding: 20px; background: rgba(0,0,0,0.3);
+  border-radius: 12px; text-align: left; max-width: 600px;
+  margin-left: auto; margin-right: auto;
+}
+.sezione-regole h3 { text-align: center; color: #ff6b35; margin-bottom: 15px; cursor: pointer; }
+.sezione-regole h3::after { content: ' \25BC'; font-size: 0.7em; }
+.sezione-regole.chiusa h3::after { content: ' \25B6'; }
+.sezione-regole.chiusa .regole-contenuto { display: none; }
+.regole-contenuto { font-size: 0.9em; line-height: 1.6; }
+.regole-contenuto h4 { color: #7ab8d4; margin-top: 15px; margin-bottom: 8px; }
+.regole-contenuto ul { margin-left: 20px; margin-bottom: 10px; }
+.regole-contenuto li { margin-bottom: 5px; }
+
+/* Attesa */
+#attesa { text-align: center; padding-top: 100px; }
+.codice-stanza {
+  background: rgba(255,255,255,0.1); padding: 20px 40px;
+  border-radius: 12px; display: inline-block; margin: 30px 0;
+}
+.codice-stanza strong { font-size: 2.5em; letter-spacing: 5px; color: #ff6b35; }
+.loader {
+  width: 50px; height: 50px;
+  border: 4px solid rgba(255,255,255,0.3); border-top-color: #ff6b35;
+  border-radius: 50%; margin: 30px auto; animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Gioco */
+#gioco { display: none; }
+#gioco.attiva { display: block; }
+
+.info-partita {
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(0,0,0,0.4); padding: 15px 20px;
+  border-radius: 12px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+}
+
+.info-avversari { display: flex; gap: 20px; flex-wrap: wrap; }
+
+.info-avversario {
+  display: flex; flex-direction: column; gap: 3px;
+  background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px;
+}
+.info-avversario .nome { font-weight: bold; font-size: 0.95em; }
+.info-avversario .dettagli { font-size: 0.8em; color: #7ab8d4; }
+
+.info-giocatore { display: flex; flex-direction: column; gap: 5px; }
+.info-giocatore .nome { font-weight: bold; font-size: 1.1em; }
+.info-giocatore.tu .nome { color: #ff6b35; }
+.info-giocatore .carte-info { font-size: 0.85em; color: #7ab8d4; }
+
+.info-centro { text-align: center; display: flex; flex-direction: column; gap: 8px; }
+
+#turnoIndicatore {
+  font-weight: bold; padding: 8px 16px; border-radius: 20px;
+  background: rgba(255,255,255,0.1);
+}
+#turnoIndicatore.mio-turno { background: #ff6b35; color: #fff; }
+
+.extra-info { font-size: 0.8em; color: #7ab8d4; }
+
+/* Avversari mano (dorso) */
+#areaAvversari { display: flex; justify-content: center; gap: 30px; margin: 10px 0; }
+.avversario-mano { text-align: center; }
+.avversario-mano h4 { color: #7ab8d4; font-size: 0.85em; margin-bottom: 5px; }
+
+.mano-carte {
+  display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; min-height: 100px;
+}
+
+.mano-carte.dorso .carta {
+  background: linear-gradient(135deg, #8b0000 0%, #5c0000 100%); cursor: default;
+}
+.mano-carte.dorso .carta::before {
+  content: ''; position: absolute;
+  top: 8px; left: 8px; right: 8px; bottom: 8px;
+  border: 2px solid #ff6b35; border-radius: 4px;
+}
+
+/* Carte */
+.carta {
+  width: 75px; height: 130px; background: #fff; border-radius: 8px;
+  overflow: hidden; cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.carta img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+.carta:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+
+.carta.selezionata {
+  transform: translateY(-15px);
+  box-shadow: 0 12px 25px rgba(255, 107, 53, 0.6);
+  outline: 3px solid #ff6b35;
+}
+.carta.catturabile {
+  animation: pulse 1.2s infinite; outline: 2px solid #4caf50;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.5); }
+  50% { box-shadow: 0 0 0 12px rgba(76, 175, 80, 0); }
+}
+
+.carta.carta-dieci { outline: 2px solid #ff6b35; }
+
+/* Zona centrale */
+.zona-centrale {
+  display: flex; align-items: flex-start; justify-content: center;
+  gap: 40px; margin: 20px 0;
+}
+
+.briscola-container { text-align: center; min-width: 100px; }
+.briscola-container h4 { color: #ff6b35; margin-bottom: 10px; font-size: 0.9em; }
+
+.briscola-slot {
+  width: 75px; height: 130px; margin: 0 auto;
+  border: 2px dashed #ff6b35; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 107, 53, 0.1);
+}
+.briscola-slot .carta { cursor: default; width: 71px; height: 126px; }
+.briscola-slot .carta:hover { transform: none; }
+
+.tavolo-container {
+  flex: 1; text-align: center;
+  background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px;
+}
+.tavolo-container h3 { color: #7ab8d4; margin-bottom: 10px; }
+
+.tavolo {
+  display: flex; justify-content: center; gap: 10px;
+  flex-wrap: wrap; min-height: 140px; padding: 10px;
+}
+
+.area-giocatore { margin: 20px 0; text-align: center; }
+.area-giocatore h3 { color: #7ab8d4; margin-bottom: 10px; }
+
+/* Fine Round */
+#fineRound { text-align: center; padding-top: 40px; }
+#fineRound h2 { color: #ff6b35; margin-bottom: 20px; }
+
+.briscola-riepilogo {
+  display: inline-flex; align-items: center; gap: 15px;
+  margin-bottom: 25px; padding: 15px;
+  background: rgba(255, 107, 53, 0.1); border-radius: 12px;
+}
+.briscola-riepilogo .carta { width: 60px; height: 105px; cursor: default; }
+.briscola-riepilogo .carta:hover { transform: none; }
+.briscola-riepilogo .seme-label { font-size: 1.1em; color: #ff6b35; }
+
+.riepilogo-punti {
+  display: flex; justify-content: center; gap: 30px;
+  margin: 30px 0; flex-wrap: wrap;
+}
+
+.colonna-punti {
+  background: rgba(255,255,255,0.08); padding: 25px 30px;
+  border-radius: 12px; min-width: 220px;
+}
+.colonna-punti h3 { margin-bottom: 15px; color: #ff6b35; }
+
+.tabella-punti { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+.tabella-punti td {
+  padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.tabella-punti td:first-child { text-align: left; }
+.tabella-punti td:nth-child(2) { text-align: center; color: #7ab8d4; font-size: 0.85em; }
+.tabella-punti td:last-child { text-align: right; font-weight: bold; }
+
+.tabella-punti .riga-totale {
+  border-top: 2px solid #ff6b35;
+  background: rgba(255, 107, 53, 0.15);
+}
+.tabella-punti .riga-totale td { padding: 10px; font-weight: bold; color: #ff6b35; }
+
+.punti-totali { margin-top: 10px; font-size: 1.2em; }
+.punto-si { color: #4caf50; }
+.punto-no { color: #888; }
+
+.nascosto { display: none !important; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .zona-centrale { flex-direction: column; align-items: center; gap: 20px; }
+  .carta { width: 60px; height: 105px; }
+  .info-partita { flex-direction: column; gap: 10px; }
+  .riepilogo-punti { flex-direction: column; gap: 20px; }
+  .colonna-punti { min-width: auto; }
+}
