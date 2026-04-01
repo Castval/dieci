@@ -17,7 +17,14 @@ function getImmagineCarta(valore, seme) {
 
 let statoGioco = null;
 let cartaSelezionata = null;
-let sessioneCorrente = null; // { codice, nome } per riconnessione
+// Sessione persistente per riconnessione
+function getSessione() {
+  try { return JSON.parse(sessionStorage.getItem('sessioneCorrente')); } catch { return null; }
+}
+function setSessione(s) {
+  if (s) sessionStorage.setItem('sessioneCorrente', JSON.stringify(s));
+  else sessionStorage.removeItem('sessioneCorrente');
+}
 
 const schermate = {
   lobby: document.getElementById('lobby'),
@@ -334,7 +341,7 @@ document.getElementById('btnCreaStanza').addEventListener('click', () => {
   const nome = document.getElementById('nomeGiocatore').value.trim();
   if (!nome) { mostraMessaggio('Inserisci il tuo nome', 'errore'); return; }
   const numGiocatori = parseInt(document.getElementById('numGiocatori').value);
-  sessioneCorrente = { nome };
+  setSessione({ nome });
   socket.emit('creaStanza', { nome, numGiocatori });
 });
 
@@ -343,7 +350,7 @@ document.getElementById('btnUnisciti').addEventListener('click', () => {
   const codice = document.getElementById('codiceStanza').value.trim().toUpperCase();
   if (!nome) { mostraMessaggio('Inserisci il tuo nome', 'errore'); return; }
   if (!codice) { mostraMessaggio('Inserisci il codice stanza', 'errore'); return; }
-  sessioneCorrente = { codice, nome };
+  setSessione({ codice, nome });
   socket.emit('uniscitiStanza', { codice, nome });
 });
 
@@ -394,7 +401,7 @@ socket.on('stanzeDisponibili', (stanze) => {
 });
 
 socket.on('stanzaCreata', ({ codice, numGiocatori }) => {
-  if (sessioneCorrente) sessioneCorrente.codice = codice;
+  const s = getSessione(); if (s) { s.codice = codice; setSessione(s); }
   document.getElementById('codiceStanzaDisplay').textContent = codice;
   document.getElementById('attesaInfo').textContent =
     `In attesa degli altri giocatori (1/${numGiocatori})...`;
@@ -561,13 +568,14 @@ socket.on('giocatoreRiconnesso', ({ nome }) => {
 
 socket.on('avversarioAbbandonato', ({ nome }) => {
   mostraMessaggio(`${nome} ha abbandonato la partita`, 'errore');
-  sessioneCorrente = null;
+  setSessione(null);
   setTimeout(() => mostraSchermata('lobby'), 3000);
 });
 
 // Riconnessione automatica: quando la socket si riconnette, ritenta il join
 socket.on('connect', () => {
-  if (sessioneCorrente && sessioneCorrente.codice && sessioneCorrente.nome) {
-    socket.emit('uniscitiStanza', { codice: sessioneCorrente.codice, nome: sessioneCorrente.nome });
+  const sess = getSessione();
+  if (sess && sess.codice && sess.nome) {
+    socket.emit('uniscitiStanza', { codice: sess.codice, nome: sess.nome });
   }
 });

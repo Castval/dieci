@@ -64,17 +64,21 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Controlla se è una riconnessione
+    // Controlla se è una riconnessione (giocatore con stesso nome, disconnesso o meno)
     const chiaveDisc = `${codice}_${nome}`;
-    const giocatoreDisconnesso = partita.giocatori.find(g => g.nome === nome && g.disconnesso);
+    const giocatoreEsistente = partita.giocatori.find(g => g.nome === nome);
 
-    if (giocatoreDisconnesso) {
-      // Riconnessione: aggiorna il socket ID
-      const vecchioId = giocatoreDisconnesso.id;
-      giocatoreDisconnesso.id = socket.id;
-      giocatoreDisconnesso.disconnesso = false;
+    if (giocatoreEsistente && (partita.stato === 'inCorso' || partita.stato === 'fineRound' || partita.stato === 'finePartita')) {
+      // Disconnetti il vecchio socket se ancora connesso
+      const vecchioSocket = io.sockets.sockets.get(giocatoreEsistente.id);
+      if (vecchioSocket) {
+        vecchioSocket.codiceStanza = null;
+        vecchioSocket.disconnect(true);
+      }
 
-      // Cancella il timeout di rimozione
+      giocatoreEsistente.id = socket.id;
+      giocatoreEsistente.disconnesso = false;
+
       if (disconnessioniPendenti.has(chiaveDisc)) {
         clearTimeout(disconnessioniPendenti.get(chiaveDisc));
         disconnessioniPendenti.delete(chiaveDisc);
@@ -83,14 +87,7 @@ io.on('connection', (socket) => {
       socket.join(codice);
       socket.codiceStanza = codice;
 
-      // Invia lo stato corrente al giocatore riconnesso
-      if (partita.stato === 'inCorso') {
-        socket.emit('partitaIniziata', partita.getStato(socket.id));
-      } else if (partita.stato === 'fineRound' || partita.stato === 'finePartita') {
-        socket.emit('partitaIniziata', partita.getStato(socket.id));
-      }
-
-      // Notifica gli altri
+      socket.emit('partitaIniziata', partita.getStato(socket.id));
       io.to(codice).emit('giocatoreRiconnesso', { nome });
       console.log(`Giocatore ${nome} riconnesso nella stanza ${codice}`);
       return;
