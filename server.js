@@ -13,6 +13,7 @@ const PORT = process.env.PORT || 3003;
 app.use(express.static(path.join(__dirname, 'public')));
 
 const stanze = new Map();
+const disconnessioniPendenti = new Map(); // chiave: `${codice}_${nome}`, valore: timeout
 
 function generaCodiceStanza() {
   const caratteri = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -60,6 +61,38 @@ io.on('connection', (socket) => {
 
     if (!partita) {
       socket.emit('errore', 'Stanza non trovata');
+      return;
+    }
+
+    // Controlla se è una riconnessione
+    const chiaveDisc = `${codice}_${nome}`;
+    const giocatoreDisconnesso = partita.giocatori.find(g => g.nome === nome && g.disconnesso);
+
+    if (giocatoreDisconnesso) {
+      // Riconnessione: aggiorna il socket ID
+      const vecchioId = giocatoreDisconnesso.id;
+      giocatoreDisconnesso.id = socket.id;
+      giocatoreDisconnesso.disconnesso = false;
+
+      // Cancella il timeout di rimozione
+      if (disconnessioniPendenti.has(chiaveDisc)) {
+        clearTimeout(disconnessioniPendenti.get(chiaveDisc));
+        disconnessioniPendenti.delete(chiaveDisc);
+      }
+
+      socket.join(codice);
+      socket.codiceStanza = codice;
+
+      // Invia lo stato corrente al giocatore riconnesso
+      if (partita.stato === 'inCorso') {
+        socket.emit('partitaIniziata', partita.getStato(socket.id));
+      } else if (partita.stato === 'fineRound' || partita.stato === 'finePartita') {
+        socket.emit('partitaIniziata', partita.getStato(socket.id));
+      }
+
+      // Notifica gli altri
+      io.to(codice).emit('giocatoreRiconnesso', { nome });
+      console.log(`Giocatore ${nome} riconnesso nella stanza ${codice}`);
       return;
     }
 
@@ -171,12 +204,41 @@ io.on('connection', (socket) => {
     const partita = stanze.get(codice);
     if (!partita) return;
 
-    partita.rimuoviGiocatore(socket.id);
-    io.to(codice).emit('avversarioDisconnesso');
+    const giocatore = partita.giocatori.find(g => g.id === socket.id);
+    if (!giocatore) return;
 
-    if (partita.giocatori.length === 0) {
-      stanze.delete(codice);
-      console.log(`Stanza ${codice} eliminata`);
+    // Se la partita è in corso, metti in pausa per 60 secondi
+    if (partita.stato === 'inCorso' || partita.stato === 'fineRound') {
+      giocatore.disconnesso = true;
+      const nome = giocatore.nome;
+      const chiaveDisc = `${codice}_${nome}`;
+
+      io.to(codice).emit('avversarioDisconnesso', { nome, timeout: 180 });
+      console.log(`Giocatore ${nome} disconnesso dalla stanza ${codice}, attendo riconnessione...`);
+
+      // Timeout: se non si riconnette entro 60s, rimuovi
+      const timer = setTimeout(() => {
+        disconnessioniPendenti.delete(chiaveDisc);
+        partita.rimuoviGiocatore(giocatore.id);
+        io.to(codice).emit('avversarioAbbandonato', { nome });
+        console.log(`Giocatore ${nome} rimosso dalla stanza ${codice} (timeout)`);
+
+        if (partita.giocatori.filter(g => !g.disconnesso).length === 0) {
+          stanze.delete(codice);
+          console.log(`Stanza ${codice} eliminata`);
+        }
+      }, 180000);
+
+      disconnessioniPendenti.set(chiaveDisc, timer);
+    } else {
+      // Partita in attesa o finita: rimuovi subito
+      partita.rimuoviGiocatore(socket.id);
+      io.to(codice).emit('avversarioAbbandonato', { nome: giocatore.nome });
+
+      if (partita.giocatori.length === 0) {
+        stanze.delete(codice);
+        console.log(`Stanza ${codice} eliminata`);
+      }
     }
   });
 });
