@@ -302,6 +302,7 @@ class Dieci {
         carteInMano: g.mano.length,
         numPrese: g.prese.length,
         numDipiù: g.dipiù.length,
+        dipiù: g.dipiù,
         puntiTotali: g.puntiTotali
       }));
 

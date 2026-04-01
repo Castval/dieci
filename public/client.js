@@ -192,6 +192,125 @@ function renderizzaGioco() {
   }
 
   cartaSelezionata = null;
+
+  // Mazzi prese
+  renderizzaMazzoPrese();
+  renderizzaMazzoPreseAvversario();
+}
+
+// Renderizza il mazzo delle prese del giocatore con dieci di traverso
+function renderizzaMazzoPrese() {
+  const mazzoPrese = document.getElementById('mazzoPrese');
+  mazzoPrese.innerHTML = '';
+  if (!statoGioco) return;
+
+  const numPrese = statoGioco.preseGiocatore;
+  const dieci = statoGioco.dieciGiocatore || [];
+
+  if (numPrese === 0 && dieci.length === 0) return;
+
+  const carteNormaliDaMostrare = Math.min(3, Math.max(1, numPrese - dieci.length));
+  for (let i = 0; i < carteNormaliDaMostrare; i++) {
+    const cartaPresa = document.createElement('div');
+    cartaPresa.className = 'carta-presa';
+    cartaPresa.style.top = (i * 2) + 'px';
+    cartaPresa.style.left = (i * 1) + 'px';
+    cartaPresa.style.zIndex = i;
+    mazzoPrese.appendChild(cartaPresa);
+  }
+
+  const maxVisibili = 7;
+  const dieciDaMostrare = dieci.slice(-maxVisibili);
+  dieciDaMostrare.forEach((d, idx) => {
+    const parti = d.carta.split('_');
+    const valore = parseInt(parti[0]);
+    const seme = parti[1];
+
+    const cartaDieci = document.createElement('div');
+    cartaDieci.className = 'carta-dieci-presa';
+    const baseTop = (carteNormaliDaMostrare * 2) + 5;
+    cartaDieci.style.top = (baseTop + idx * 18) + 'px';
+    cartaDieci.style.left = '-15px';
+    cartaDieci.style.zIndex = 50 + idx;
+
+    const imgSrc = getImmagineCarta(valore, seme);
+    cartaDieci.innerHTML = `<img src="${imgSrc}" alt="${valore} di ${seme}">`;
+
+    const puntiDiv = document.createElement('div');
+    puntiDiv.className = 'dieci-punti';
+    puntiDiv.textContent = '+' + d.valore;
+    cartaDieci.appendChild(puntiDiv);
+    mazzoPrese.appendChild(cartaDieci);
+  });
+
+  const contatore = document.createElement('div');
+  contatore.className = 'contatore-prese';
+  if (dieci.length > 0) {
+    contatore.innerHTML = `${numPrese} carte<br><strong>${dieci.length} dieci (+${dieci.length})</strong>`;
+  } else {
+    contatore.textContent = `${numPrese} carte`;
+  }
+  mazzoPrese.appendChild(contatore);
+}
+
+// Renderizza il mazzo delle prese dell'avversario
+function renderizzaMazzoPreseAvversario() {
+  const mazzoPrese = document.getElementById('mazzoPreseAvversario');
+  mazzoPrese.innerHTML = '';
+  if (!statoGioco) return;
+
+  // Somma prese di tutti gli avversari
+  let numPrese = 0;
+  let dieci = [];
+  for (const avv of statoGioco.avversari) {
+    numPrese += avv.numPrese;
+    dieci = dieci.concat(avv.dipiù || []);
+  }
+
+  if (numPrese === 0 && dieci.length === 0) return;
+
+  const carteNormaliDaMostrare = Math.min(3, Math.max(1, numPrese - dieci.length));
+  for (let i = 0; i < carteNormaliDaMostrare; i++) {
+    const cartaPresa = document.createElement('div');
+    cartaPresa.className = 'carta-presa';
+    cartaPresa.style.top = (i * 2) + 'px';
+    cartaPresa.style.left = (i * 1) + 'px';
+    cartaPresa.style.zIndex = i;
+    mazzoPrese.appendChild(cartaPresa);
+  }
+
+  const maxVisibili = 7;
+  const dieciDaMostrare = dieci.slice(-maxVisibili);
+  dieciDaMostrare.forEach((d, idx) => {
+    const parti = d.carta.split('_');
+    const valore = parseInt(parti[0]);
+    const seme = parti[1];
+
+    const cartaDieci = document.createElement('div');
+    cartaDieci.className = 'carta-dieci-presa';
+    const baseTop = (carteNormaliDaMostrare * 2) + 5;
+    cartaDieci.style.top = (baseTop + idx * 18) + 'px';
+    cartaDieci.style.left = '-15px';
+    cartaDieci.style.zIndex = 50 + idx;
+
+    const imgSrc = getImmagineCarta(valore, seme);
+    cartaDieci.innerHTML = `<img src="${imgSrc}" alt="${valore} di ${seme}">`;
+
+    const puntiDiv = document.createElement('div');
+    puntiDiv.className = 'dieci-punti';
+    puntiDiv.textContent = '+' + d.valore;
+    cartaDieci.appendChild(puntiDiv);
+    mazzoPrese.appendChild(cartaDieci);
+  });
+
+  const contatore = document.createElement('div');
+  contatore.className = 'contatore-prese';
+  if (dieci.length > 0) {
+    contatore.innerHTML = `${numPrese} carte<br><strong>${dieci.length} dieci (+${dieci.length})</strong>`;
+  } else {
+    contatore.textContent = `${numPrese} carte`;
+  }
+  mazzoPrese.appendChild(contatore);
 }
 
 function mostraMessaggio(testo, tipo = '') {
@@ -300,16 +419,45 @@ socket.on('partitaIniziata', (stato) => {
 });
 
 socket.on('statoAggiornato', (dati) => {
-  const { cartaGiocataId, giocatoreId, dipiù, presa, ...stato } = dati;
-  statoGioco = stato;
-  renderizzaGioco();
+  const { cartaGiocata, giocatoreId, dipiù, presa, ...stato } = dati;
 
-  if (dipiù && giocatoreId !== socket.id) {
-    mostraMessaggio('L\'avversario ha fatto Dieci!', 'info');
-  } else if (dipiù && giocatoreId === socket.id) {
-    mostraMessaggio('Dieci!', 'successo');
+  if (cartaGiocata && giocatoreId !== socket.id) {
+    mostraCartaAvversario(cartaGiocata, () => {
+      statoGioco = stato;
+      renderizzaGioco();
+      if (dipiù) {
+        mostraMessaggio('L\'avversario ha fatto Dieci!', 'info');
+      }
+    });
+  } else {
+    statoGioco = stato;
+    renderizzaGioco();
+    if (dipiù && giocatoreId === socket.id) {
+      mostraMessaggio('Dieci!', 'successo');
+    }
   }
 });
+
+// Mostra la carta giocata dall'avversario
+function mostraCartaAvversario(carta, callback) {
+  const tavoloContainer = document.querySelector('.tavolo-container');
+
+  const cartaDiv = document.createElement('div');
+  cartaDiv.className = 'carta carta-avversario-giocata';
+  if (carta.valore === 10) {
+    cartaDiv.classList.add('carta-dieci');
+  }
+
+  const imgSrc = getImmagineCarta(carta.valore, carta.seme);
+  cartaDiv.innerHTML = `<img src="${imgSrc}" alt="${carta.valore} di ${carta.seme}">`;
+
+  tavoloContainer.appendChild(cartaDiv);
+
+  setTimeout(() => {
+    cartaDiv.remove();
+    callback();
+  }, 1000);
+}
 
 socket.on('mossaNonValida', (errore) => {
   mostraMessaggio(errore, 'errore');

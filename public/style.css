@@ -167,8 +167,13 @@ body {
 
 .extra-info { font-size: 0.8em; color: #7ab8d4; }
 
+/* Area avversario con prese */
+.area-avversario-container {
+  display: flex; align-items: flex-start; gap: 30px; margin: 10px 0;
+}
+.area-avversario-container #areaAvversari { flex: 1; display: flex; justify-content: center; gap: 30px; }
+
 /* Avversari mano (dorso) */
-#areaAvversari { display: flex; justify-content: center; gap: 30px; margin: 10px 0; }
 .avversario-mano { text-align: center; }
 .avversario-mano h4 { color: #7ab8d4; font-size: 0.85em; margin-bottom: 5px; }
 
@@ -229,7 +234,7 @@ body {
 .briscola-slot .carta:hover { transform: none; }
 
 .tavolo-container {
-  flex: 1; text-align: center;
+  flex: 1; text-align: center; position: relative;
   background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px;
 }
 .tavolo-container h3 { color: #7ab8d4; margin-bottom: 10px; }
@@ -239,8 +244,53 @@ body {
   flex-wrap: wrap; min-height: 140px; padding: 10px;
 }
 
-.area-giocatore { margin: 20px 0; text-align: center; }
-.area-giocatore h3 { color: #7ab8d4; margin-bottom: 10px; }
+/* Area giocatore con prese */
+.area-giocatore-container {
+  display: flex; align-items: flex-start; gap: 30px; margin: 20px 0;
+}
+.area-giocatore-container .area-giocatore { flex: 1; text-align: center; }
+.area-giocatore-container .area-giocatore h3 { color: #7ab8d4; margin-bottom: 10px; }
+
+/* Prese */
+.area-prese { text-align: center; min-width: 110px; }
+.area-prese h4 { color: #7ab8d4; margin-bottom: 10px; font-size: 0.9em; }
+
+.mazzo-prese {
+  position: relative; width: 90px; height: 140px; margin: 0 auto;
+}
+
+.mazzo-prese .carta-presa {
+  position: absolute; width: 70px; height: 120px;
+  background: linear-gradient(135deg, #8b0000 0%, #5c0000 100%);
+  border-radius: 6px; box-shadow: 1px 1px 3px rgba(0,0,0,0.4); cursor: default;
+}
+.mazzo-prese .carta-presa::before {
+  content: ''; position: absolute;
+  top: 8px; left: 8px; right: 8px; bottom: 8px;
+  border: 1.5px solid #ff6b35; border-radius: 3px;
+}
+
+/* Carta dieci (come scopa) - ruotata di traverso */
+.mazzo-prese .carta-dieci-presa {
+  position: absolute; width: 70px; height: 120px;
+  border-radius: 6px; box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+  cursor: default; transform: rotate(90deg); z-index: 50; overflow: visible;
+}
+.mazzo-prese .carta-dieci-presa img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 4px;
+}
+
+/* Indicatore punti dieci */
+.mazzo-prese .dieci-punti {
+  position: absolute; top: -25px; left: 50%;
+  transform: translateX(-50%) rotate(-90deg);
+  background: #ff6b35; color: #fff;
+  font-size: 14px; font-weight: bold;
+  padding: 4px 8px; border-radius: 8px;
+  z-index: 200; box-shadow: 0 2px 6px rgba(0,0,0,0.5); white-space: nowrap;
+}
+
+.contatore-prese { margin-top: 10px; font-size: 0.85em; color: #7ab8d4; }
 
 /* Fine Round */
 #fineRound { text-align: center; padding-top: 40px; }
@@ -284,6 +334,37 @@ body {
 .punto-si { color: #4caf50; }
 .punto-no { color: #888; }
 
+/* Carta giocata dall'avversario */
+.carta-avversario-giocata {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: cartaAvversario 1s ease-in-out;
+  outline: 3px solid #ff6b6b;
+  box-shadow: 0 0 25px rgba(255, 107, 107, 0.8);
+  z-index: 100;
+}
+
+@keyframes cartaAvversario {
+  0% {
+    transform: translateX(-50%) translateY(-30px) scale(1.3);
+    opacity: 0;
+  }
+  20% {
+    transform: translateX(-50%) translateY(0) scale(1.2);
+    opacity: 1;
+  }
+  80% {
+    transform: translateX(-50%) translateY(0) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 0;
+  }
+}
+
 .nascosto { display: none !important; }
 
 /* Responsive */
@@ -293,4 +374,6 @@ body {
   .info-partita { flex-direction: column; gap: 10px; }
   .riepilogo-punti { flex-direction: column; gap: 20px; }
   .colonna-punti { min-width: auto; }
+  .area-avversario-container { flex-direction: column; align-items: center; }
+  .area-giocatore-container { flex-direction: column-reverse; align-items: center; }
 }

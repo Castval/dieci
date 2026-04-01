@@ -122,10 +122,14 @@ io.on('connection', (socket) => {
         });
       }
     } else {
+      // Ricostruisci l'oggetto carta dal suo ID per mostrarlo agli avversari
+      const [valStr, seme] = cartaId.split('_');
+      const cartaGiocata = { id: cartaId, valore: parseInt(valStr), seme };
+
       for (const g of partita.giocatori) {
         io.to(g.id).emit('statoAggiornato', {
           ...partita.getStato(g.id),
-          cartaGiocataId: cartaId,
+          cartaGiocata,
           giocatoreId: socket.id,
           dipiù: risultato.dipiù,
           presa: risultato.presa
